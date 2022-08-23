@@ -1,0 +1,40 @@
+name: Go-ubuntu
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+    inputs:
+      tagname:
+        description: 发布的版本号(草稿)
+        default: 'v1.0.0'
+        # Input has to be provided for the workflow to run
+        required: true
+        
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+      
+    - name: list file
+      run: |
+        pwd
+        ls -la
+        
+        
