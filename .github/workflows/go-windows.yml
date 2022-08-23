@@ -1,0 +1,55 @@
+name: Go-windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+    inputs:
+      tagname:
+        description: 发布的版本号(草稿)
+        default: 'v1.0.0'
+        # Input has to be provided for the workflow to run
+        required: true
+        
+jobs:
+
+  build:
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v -o aliddns-win ./main
+      
+    - name: list file
+      run: |
+        echo %cd%
+        dir /a
+        
+    - name : upload Artifacts
+      uses: actions/upload-artifact@v2
+      if: true
+      with:
+        name: Artifacts
+        path: aliddns*
+        
+    - name: release
+      if: true
+      uses: softprops/action-gh-release@v1
+      with:
+        name: v1.0.0
+        tag_name: v1.0.0
+        draft: true
+        prerelease: false
+        files: aliddns*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
