@@ -134,12 +134,14 @@ func _add(client *alidns20150109.Client, isV4 bool, ip string) (_err error) {
 		Value:      tea.String(ip),
 	}
 	runtime := &util.RuntimeOptions{}
-	resp, _err := client.AddDomainRecordWithOptions(addDomainRecordRequest, runtime)
+	_, _err = client.AddDomainRecordWithOptions(addDomainRecordRequest, runtime)
 	if _err != nil {
+
 		return _err
 	}
 
-	console.Log(util.ToJSONString(tea.ToMap(resp)))
+	//console.Log(util.ToJSONString(tea.ToMap(resp)))
+
 	return nil
 }
 
@@ -160,14 +162,13 @@ func _update(client *alidns20150109.Client, isV4 bool, ip string, RecordId strin
 		Value:    tea.String(ip),
 	}
 	runtime := &util.RuntimeOptions{}
-	resp, _err := client.UpdateDomainRecordWithOptions(updateDomainRecordRequest, runtime)
+	_, _err = client.UpdateDomainRecordWithOptions(updateDomainRecordRequest, runtime)
 	if _err != nil {
 		return _err
 	}
 
-	//resp.Body.DomainRecords.Record;
+	//console.Log(util.ToJSONString(tea.ToMap(resp)))
 
-	console.Log(util.ToJSONString(tea.ToMap(resp)))
 	return nil
 }
 
@@ -368,7 +369,7 @@ func _main(args []*string) (_err error) {
 			fmt.Println("获取ip6失败:" + _err.Error())
 		} else {
 
-			id, _err := getRecordIdByPR(records, config.NameIpv6, ip, true)
+			id, _err := getRecordIdByPR(records, config.NameIpv6, ip, false)
 			if _err != nil {
 				fmt.Println(_err.Error())
 			} else if id == nil {
