@@ -1,4 +1,4 @@
-// This file is auto-generated, don't edit it. Thanks.
+// tick_guo
 package main
 
 import (
@@ -413,6 +413,8 @@ func _main(args []*string) (_err error) {
 
 func main() {
 	{
+		Log("aliddns v1.0.3 build 20220824 by tick_guo")
+
 		dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			//log.Fatal(err)
