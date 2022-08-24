@@ -5,7 +5,6 @@ import (
 	"fmt"
 	alidns20150109 "github.com/alibabacloud-go/alidns-20150109/v3/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
-	console "github.com/alibabacloud-go/tea-console/client"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"gopkg.in/ini.v1"
@@ -14,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -42,6 +42,20 @@ type Config struct {
 var config Config
 var programDir string
 
+func Log(a interface{}) (n int, err error) {
+
+	var timeStr = time.Now().Format("[2006-01-02 15:04:05] ")
+	fmt.Print(timeStr)
+
+	switch v := a.(type) {
+	case *string:
+		return fmt.Fprintln(os.Stdout, *v)
+	case string:
+		return fmt.Fprintln(os.Stdout, v)
+	}
+	return fmt.Fprintln(os.Stdout, a)
+}
+
 /**
  * 使用AK&SK初始化账号Client
  * @param accessKeyId
@@ -63,7 +77,8 @@ func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *alidns
 	return _result, _err
 }
 
-func _getRecords(client *alidns20150109.Client) (Record []*alidns20150109.DescribeDomainRecordsResponseBodyDomainRecordsRecord, _err error) {
+func _getRecords(client *alidns20150109.Client) (
+	Record []*alidns20150109.DescribeDomainRecordsResponseBodyDomainRecordsRecord, _err error) {
 
 	describeDomainRecordsRequest := &alidns20150109.DescribeDomainRecordsRequest{
 		DomainName: tea.String(config.Domain),
@@ -79,7 +94,7 @@ func _getRecords(client *alidns20150109.Client) (Record []*alidns20150109.Descri
 
 	var ls = resp.Body.DomainRecords.Record
 
-	//console.Log(util.ToJSONString(tea.ToMap(resp)))
+	//Log(util.ToJSONString(tea.ToMap(resp)))
 	return ls, _err
 }
 
@@ -125,7 +140,7 @@ func _add(client *alidns20150109.Client, isV4 bool, ip string) (_err error) {
 		aType = "A"
 	}
 
-	fmt.Println("添加解析: " + name + "." + config.Domain)
+	Log("添加解析: " + name + "." + config.Domain)
 
 	addDomainRecordRequest := &alidns20150109.AddDomainRecordRequest{
 		DomainName: tea.String(config.Domain),
@@ -140,7 +155,7 @@ func _add(client *alidns20150109.Client, isV4 bool, ip string) (_err error) {
 		return _err
 	}
 
-	//console.Log(util.ToJSONString(tea.ToMap(resp)))
+	//Log(util.ToJSONString(tea.ToMap(resp)))
 
 	return nil
 }
@@ -153,7 +168,7 @@ func _update(client *alidns20150109.Client, isV4 bool, ip string, RecordId strin
 		aType = "A"
 	}
 
-	fmt.Println("更新解析: " + name + "." + config.Domain)
+	Log("更新解析: " + name + "." + config.Domain)
 
 	updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
 		RecordId: tea.String(RecordId),
@@ -167,7 +182,7 @@ func _update(client *alidns20150109.Client, isV4 bool, ip string, RecordId strin
 		return _err
 	}
 
-	//console.Log(util.ToJSONString(tea.ToMap(resp)))
+	//Log(util.ToJSONString(tea.ToMap(resp)))
 
 	return nil
 }
@@ -191,7 +206,7 @@ func getIniConfig() (_err error) {
 
 	load, err := ini.Load(path)
 	if err != nil {
-		fmt.Println("配置文件读取失败:" + path)
+		Log("配置文件读取失败:" + path)
 		return err
 	}
 
@@ -276,7 +291,7 @@ func getIniConfig() (_err error) {
 		}
 
 	}
-	console.Log(util.ToJSONString(config))
+	Log(util.ToJSONString(config))
 
 	return nil
 }
@@ -300,11 +315,11 @@ func getPublicIp(url string) (ip string, _err error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err == nil {
-		//fmt.Println("取得ip地址:" + string(body))
+		//Log("取得ip地址:" + string(body))
 	}
 
 	ip = strings.TrimSpace(string(body))
-	fmt.Println("取得ip地址:" + ip)
+	Log("取得ip地址:" + ip)
 	if len(ip) > 0 {
 		return ip, nil
 	} else {
@@ -320,7 +335,7 @@ func _main(args []*string) (_err error) {
 	}
 
 	if config.Ipv4Flag == 0 && config.Ipv6Flag == 0 {
-		console.Log(tea.String("ipv4,ipv6的更新都没有开启,退出"))
+		Log(tea.String("ipv4,ipv6的更新都没有开启,退出"))
 		return nil
 	}
 
@@ -337,27 +352,27 @@ func _main(args []*string) (_err error) {
 	if config.Ipv4Flag == 1 {
 		ip, _err := getPublicIp(config.Ip4Url)
 		if _err != nil {
-			fmt.Println("获取ip4失败:" + _err.Error())
+			Log("获取ip4失败:" + _err.Error())
 		} else {
 
 			id, _err := getRecordIdByPR(records, config.NameIpv4, ip, true)
 			if _err != nil {
-				fmt.Println(_err.Error())
+				Log(_err.Error())
 			} else if id == nil {
 				//add
 				_err := _add(client, true, ip)
 				if _err != nil {
-					fmt.Println("添加ip4失败:" + _err.Error())
+					Log("添加ip4失败:" + _err.Error())
 				} else {
-					fmt.Println("添加ip4成功")
+					Log("添加ip4成功")
 				}
 			} else {
 				//edit
 				_err := _update(client, true, ip, *id)
 				if _err != nil {
-					fmt.Println("更新ip4失败:" + _err.Error())
+					Log("更新ip4失败:" + _err.Error())
 				} else {
-					fmt.Println("更新ip4成功")
+					Log("更新ip4成功")
 				}
 			}
 
@@ -366,27 +381,27 @@ func _main(args []*string) (_err error) {
 	if config.Ipv6Flag == 1 {
 		ip, _err := getPublicIp(config.Ip6Url)
 		if _err != nil {
-			fmt.Println("获取ip6失败:" + _err.Error())
+			Log("获取ip6失败:" + _err.Error())
 		} else {
 
 			id, _err := getRecordIdByPR(records, config.NameIpv6, ip, false)
 			if _err != nil {
-				fmt.Println(_err.Error())
+				Log(_err.Error())
 			} else if id == nil {
 				//add
 				_err := _add(client, false, ip)
 				if _err != nil {
-					fmt.Println("添加ip6失败:" + _err.Error())
+					Log("添加ip6失败:" + _err.Error())
 				} else {
-					fmt.Println("添加ip6成功")
+					Log("添加ip6成功")
 				}
 			} else {
 				//edit
 				_err := _update(client, false, ip, *id)
 				if _err != nil {
-					fmt.Println("更新ip6失败:" + _err.Error())
+					Log("更新ip6失败:" + _err.Error())
 				} else {
-					fmt.Println("添加ip6成功")
+					Log("添加ip6成功")
 				}
 			}
 
