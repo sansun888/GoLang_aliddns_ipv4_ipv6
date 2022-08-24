@@ -45,8 +45,8 @@ jobs:
       if: true
       uses: softprops/action-gh-release@v1
       with:
-        name: v1.0.3
-        tag_name: v1.0.3
+        name: v1.0.x
+        tag_name: v1.0.x
         draft: true
         prerelease: false
         files: aliddns*
